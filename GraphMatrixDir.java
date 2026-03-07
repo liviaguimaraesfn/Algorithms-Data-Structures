@@ -1,0 +1,180 @@
+// Simple weighted graph representation 
+// Uses an Adjacency Matrix, suitable for dense graphs
+
+import java.io.*;
+
+// enum C {White, Grey, Black};
+// line above was giving errors in the terminal since it is already defined in GraphMatrix.java
+
+class GraphMatrixDir
+{
+    // V = number of vertices
+    // E = number of edges
+    // adj[ ][ ] is the adjacency matrix
+    private int V, E;
+    private int[][] adj;
+
+    // used for traversing graph to mark vertices already visited
+    private C[] colour;
+    private int time;
+    
+    // for storing the traversal tree and ditance from starting vertex
+    private int[] parent, d, f ;
+   
+   
+    // default constructor
+    public GraphMatrixDir(String graphFile)  throws IOException
+    {
+        int u, v;
+        int e, wgt;
+       
+		FileReader fr = new FileReader(graphFile);
+		BufferedReader reader = new BufferedReader(fr);	          
+        
+        String splits = " +";  // multiple whitespace as delimiter
+		String line = reader.readLine();        
+        String[] parts = line.split(splits);
+        System.out.println("Parts[] = " + parts[0] + " " + parts[1]);
+		    
+		V = Integer.parseInt(parts[0]);
+        E = Integer.parseInt(parts[1]);
+
+        // create adjacency matrix, initialised to 0's        
+        adj = new int[V+1][V+1];        
+        colour = new C[V+1];
+        parent = new int[V+1];
+        d = new int[V+1];
+        f = new int[V+1];
+        
+        // read the edges
+        System.out.println("Reading edges from text file");
+        for(e = 1; e <= E; ++e)
+        {
+            line = reader.readLine();
+            parts = line.split(splits);
+            u = Integer.parseInt(parts[0]);
+            v = Integer.parseInt(parts[1]); 
+            wgt = Integer.parseInt(parts[2]);
+            
+            System.out.println("Edge " + toChar(u) + "--(" + wgt + ")--" + toChar(v));    
+            
+            // this part is the additional code for the construction of the weighted graph:
+            adj[u][v] = wgt;
+            // adj[v][u] = wgt;
+            // line above removed to make the graph directed in the constructor            
+        }	       
+    }
+
+	// convert vertex into char for pretty printing
+    private char toChar(int u)
+    {  
+        return (char)(u + 64);
+    }
+	
+    // method to display the graph representation
+    public void display() {
+        int u,v;
+        
+        for(v=1; v<=V; ++v){
+            System.out.print("\nadj[" + v + "] = ");
+            for(u=1; u<=V; ++u) 
+                System.out.print("  " + adj[u][v]);
+        }    
+        System.out.println("");
+    }
+
+
+    // method to initialise Depth First Traversal of Graph
+    // assuming graph is connected
+    public void DF( int s) 
+    {     
+        int v;
+        for(v=1; v<=V; ++v) {
+            colour[v] = C.White;
+            parent[v] = 0;        
+        }
+        
+        System.out.print("\nDepth First Graph Traversal\n");
+        System.out.println("Starting with Vertex " + toChar(s));
+        
+        time = 0;
+        dfVisit(s);                      
+        
+        System.out.print("\n\n");
+    }
+
+
+    // Recursive Depth First Traversal for adjacency matrix
+    private void dfVisit( int v)
+    {
+        int u;
+        ++time;
+        d[v] = time;
+        colour[v] = C.Grey;
+        
+        System.out.print("\n  DF just visited vertex " + toChar(v) + " along edge " + 
+            toChar(parent[v]) + "--" + toChar(v) );
+        
+        // process all the vertices u connected to vertex v
+        // this is the additional code for the weighted graph:
+        for(u = 1; u <= V; u++) {
+            if(adj[v][u] != 0 && colour[u] == C.White) {
+                parent[u] = v;
+                dfVisit(u);
+            }
+        }
+        colour[v] = C.Black;
+        ++time;
+        f[v] = time;
+    }
+    
+    public void BF( int s)
+    // additional code for Breadth First Traversal of the graph:
+    // not directly asked in the question, but added since there is a "//lots of missing code" line to fill as well
+    {
+        int v, u;
+        int[] q = new int[V + 1]; // q means queue to store v meaning vertices
+        int front = 0, rear = 0; // front means first queue element index, and rear means next element location
+
+        for(v = 1; v <= V; ++v) {
+            colour[v] = C.White;
+            parent[v] = 0;
+            d[v] = -1;
+        }
+        colour[s] = C.Grey;
+        d[s] = 0; // means the distance from the starting vertex s to itself is 0
+        q[rear++] = s; // means adding the starting vertex to the queue
+
+        System.out.print("\nBreadth First Graph Traversal\n");
+        System.out.println("Starting with Vertex " + toChar(s));
+
+        while(front < rear) {
+            v = q[front++]; // means removing the starting element from the queue
+            for(u = 1; u <= V; ++u) {
+                if(adj[v][u] != 0 && colour[u] == C.White) {
+                // means an if statement to check if there is an edge AND if the vertex did not get visited yet
+                    colour[u] = C.Grey;
+                    d[u] = d[v] + 1;
+                    parent[u] = v;
+                    System.out.print("\n  BF just visited vertex " + toChar(u) + " along edge " +
+                        toChar(parent[u]) + "--" + toChar(u));
+                    q[rear++] = u; // means adding the vertex to the queue
+                }
+            }
+            colour[v] = C.Black;
+        }
+    }
+
+    public static void main(String[] args) throws IOException
+    {
+        int s = 1; // changed from 4 to 1 since according to Cormen page 605 graph, it starts on vertex u meaning 1
+        String fname = "cormen.txt";               
+
+        GraphMatrixDir g = new GraphMatrixDir(fname);
+       
+        g.display();
+        
+        g.DF(s); // made it part of code, not comment, purpose of testing the Depth First Traversal of the graph
+        //g.BF(s);
+    }
+}
