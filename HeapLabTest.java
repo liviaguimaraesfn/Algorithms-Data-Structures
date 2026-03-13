@@ -1,4 +1,4 @@
-// Heap Lap Test 2 - purpose of understanding and implementing a min-heap data structure, which heap nodes are prioritised by distance values.
+// Heap Lap Test - purpose of understanding and implementing a min-heap data structure, which heap nodes are prioritised by distance values.
 
 import java.io.*;
 
@@ -142,4 +142,5 @@ public class HeapLabTest {
         h.remove(); h.display();
             
     }
+
 }
